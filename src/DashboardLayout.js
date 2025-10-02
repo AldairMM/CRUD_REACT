@@ -11,9 +11,12 @@ const navItems = [
 function DashboardLayout({ children }) {
   const [active, setActive] = useState('home');
 
+  // Función para volver al inicio
+  const goHome = () => setActive('home');
+
   let content;
   if (active === 'add') {
-    content = <CreateEntities />;
+    content = <CreateEntities goHome={goHome} />;
   } else {
     content = children || <p>Bienvenido al panel de control.</p>;
   }
