@@ -1,0 +1,76 @@
+/* Contenedor principal */
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.dashboard-header {
+  background: #000000;
+  color: #fff;
+  padding: 1rem 2rem;
+  text-align: center;
+}
+
+.dashboard-main {
+  display: flex;
+  flex: 1;
+}
+
+.dashboard-sidebar {
+  background: #ffffff;
+  color: #000000;
+  min-width: 200px;
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-sidebar nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.dashboard-sidebar nav ul li {
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.dashboard-sidebar nav ul li:hover {
+  background: #edefef;
+  color: #000000;
+}
+
+.dashboard-sidebar nav ul li.active {
+  background: #030303;
+  color: #fff;
+}
+
+.dashboard-content {
+  flex: 1;
+  padding: 2rem;
+  background: #ecf0f1;
+}
+
+@media (max-width: 768px) {
+  .dashboard-main {
+    flex-direction: column;
+  }
+  .dashboard-sidebar {
+    min-width: 100%;
+    flex-direction: row;
+    padding: 1rem;
+  }
+  .dashboard-sidebar nav ul {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+  }
+  .dashboard-content {
+    padding: 1rem;
+  }
+}

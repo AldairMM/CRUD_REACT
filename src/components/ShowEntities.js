@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 
-const url = 'http://entities-s-project.test/api/entidades';
+const url = "http://127.0.0.1:8000/api/entidades";
 
 const ShowEntities = () => {
     const [entities, setEntities] = useState([]);
