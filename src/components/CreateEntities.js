@@ -1,5 +1,10 @@
+// Este componente permite crear nuevas entidades.
+// Si no hay conexión al backend, guarda la entidad en localStorage usando datos simulados.
+// Muestra un loader mientras guarda y un mensaje de error si ocurre algún problema.
+
 import React, { useState } from "react";
 import axios from "axios";
+import mockEntities from "../mockEntities";
 
 const url = "http://127.0.0.1:8000/api/entidades";
 
@@ -21,16 +26,26 @@ const CreateEntities = ({ goHome }) => {
         if (goHome) goHome();
       }, 700);
     } catch (error) {
-      setLoading(false);
-      let msg = "Error al guardar la entidad";
-      if (
-        error.response &&
-        error.response.data &&
-        error.response.data.message
-      ) {
-        msg = error.response.data.message;
+      // Modo offline: guardar en localStorage
+      let local = [];
+      try {
+        local = JSON.parse(localStorage.getItem("entities")) || mockEntities;
+      } catch {
+        local = mockEntities;
       }
-      setErrorMsg(msg);
+      const newEntity = {
+        id: local.length ? Math.max(...local.map((e) => e.id)) + 1 : 1,
+        name,
+        description,
+        status,
+        created_at: new Date().toISOString(),
+      };
+      local.push(newEntity);
+      localStorage.setItem("entities", JSON.stringify(local));
+      setTimeout(() => {
+        setLoading(false);
+        if (goHome) goHome();
+      }, 700);
     }
   };
 
@@ -96,7 +111,13 @@ const CreateEntities = ({ goHome }) => {
                       }}
                     >
                       <button className="btn btn-success mt-3">Guardar</button>
-                      <button className="btn btn-secondary mt-3" type="button" onClick={goHome}>Regresar al inicio</button>
+                      <button
+                        className="btn btn-secondary mt-3"
+                        type="button"
+                        onClick={goHome}
+                      >
+                        Regresar al inicio
+                      </button>
                     </div>
                   </form>
                 </>

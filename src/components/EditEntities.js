@@ -1,6 +1,10 @@
+// Este componente permite editar una entidad existente.
+// Si no hay conexión al backend, busca y actualiza la entidad en localStorage usando datos simulados.
+// Muestra mensajes de error si la entidad no se encuentra o si ocurre algún problema al guardar.
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
+import mockEntities from "../mockEntities";
 
 const url = "http://127.0.0.1:8000/api/entidades/";
 
@@ -21,15 +25,21 @@ const EditEntities = () => {
         setDescription(respuesta.data.entity.description);
         setStatus(respuesta.data.entity.status);
       } catch (error) {
-        let msg = "Error al cargar la entidad";
-        if (
-          error.response &&
-          error.response.data &&
-          error.response.data.message
-        ) {
-          msg = error.response.data.message;
+        // Modo offline: buscar en localStorage
+        let local = [];
+        try {
+          local = JSON.parse(localStorage.getItem("entities")) || mockEntities;
+        } catch {
+          local = mockEntities;
         }
-        setErrorMsg(msg);
+        const entity = local.find(e => String(e.id) === String(id));
+        if (entity) {
+          setName(entity.name);
+          setDescription(entity.description);
+          setStatus(entity.status);
+        } else {
+          setErrorMsg("Entidad no encontrada en modo offline");
+        }
       }
     };
     getProduct();
@@ -42,15 +52,26 @@ const EditEntities = () => {
       await axios.put(url + id, { id, name, description, status });
       redirect("/");
     } catch (error) {
-      let msg = "Error al guardar la entidad";
-      if (
-        error.response &&
-        error.response.data &&
-        error.response.data.message
-      ) {
-        msg = error.response.data.message;
+      // Modo offline: actualizar en localStorage
+      let local = [];
+      try {
+        local = JSON.parse(localStorage.getItem("entities")) || mockEntities;
+      } catch {
+        local = mockEntities;
       }
-      setErrorMsg(msg);
+      const idx = local.findIndex(e => String(e.id) === String(id));
+      if (idx !== -1) {
+        local[idx] = {
+          ...local[idx],
+          name,
+          description,
+          status,
+        };
+        localStorage.setItem("entities", JSON.stringify(local));
+        redirect("/");
+      } else {
+        setErrorMsg("Entidad no encontrada en modo offline");
+      }
     }
   };
 

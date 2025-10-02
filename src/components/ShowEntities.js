@@ -1,7 +1,13 @@
+// Este componente muestra la tabla de entidades.
+// Si no hay conexión al backend, usa datos simulados y permite crear, editar, eliminar y filtrar localmente.
+// Muestra un modal de confirmación antes de eliminar.
+// El filtro de estatus funciona tanto en modo online como offline.
+
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import "../customTable.css";
+import mockEntities from "../mockEntities";
 
 function formatDate(dateString) {
   if (!dateString) return "-";
@@ -19,6 +25,10 @@ const ShowEntities = () => {
   const [statusFilter, setStatusFilter] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [entityToDelete, setEntityToDelete] = useState(null);
+  const [isOffline, setIsOffline] = useState(false);
+
+  // Para modo offline, mantenemos el arreglo local
+  const [localEntities, setLocalEntities] = useState(mockEntities);
 
   useEffect(() => {
     getEntities();
@@ -35,11 +45,21 @@ const ShowEntities = () => {
       const endpoint = statusFilter ? `${url}/status/${statusFilter}` : url;
       const respuesta = await axios.get(endpoint);
       setEntities(respuesta.data);
+      setIsOffline(false);
     } catch (error) {
-      console.error("Error cargando entidades:", error);
+      // Si falla la conexión, usar mockEntities y modo offline
+      setIsOffline(true);
+      let filtered = mockEntities;
+      if (statusFilter) {
+        filtered = mockEntities.filter(e => e.status === statusFilter);
+      }
+      setEntities(filtered);
+      setLocalEntities(mockEntities);
+      console.warn("No se pudo conectar al backend, usando datos simulados.");
     }
   };
 
+  // Eliminar entidad local
   const handleDeleteClick = (id) => {
     setEntityToDelete(id);
     setShowModal(true);
@@ -47,6 +67,14 @@ const ShowEntities = () => {
 
   const confirmDelete = async () => {
     if (!entityToDelete) return;
+    if (isOffline) {
+      const updated = localEntities.filter(e => e.id !== entityToDelete);
+      setLocalEntities(updated);
+      setEntities(statusFilter ? updated.filter(e => e.status === statusFilter) : updated);
+      setShowModal(false);
+      setEntityToDelete(null);
+      return;
+    }
     const params = { headers: { "Content-Type": "application/json" } };
     await axios.delete(url + "/" + entityToDelete, params);
     setShowModal(false);
@@ -85,6 +113,11 @@ const ShowEntities = () => {
         </div>
       )}
       <div className="container-fluid">
+        {isOffline && (
+          <div className="alert alert-warning mt-3" role="alert">
+            Modo sin conexión: los cambios solo afectan los datos locales.
+          </div>
+        )}
         <div className="row mt-3">
           <div className="col-12 d-flex flex-column align-items-center">
             <label
